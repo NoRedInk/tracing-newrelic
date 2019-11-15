@@ -1,5 +1,7 @@
 # Tracing.Newrelic
 
+[![Travis CI Build Status](https://travis-ci.org/NoRedInk/tracing-newrelic.svg)](https://travis-ci.org/NoRedInk/tracing-newrelic)
+
 `Tracing.Newrelic` is a Haskell package to report to [New Relic](https://newrelic.com/).
 
 It works by wrapping the [New Relic C SDK](https://github.com/newrelic/c-sdk).
