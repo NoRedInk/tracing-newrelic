@@ -31,7 +31,7 @@ newrelicSdkDir = "c-sdk-" <> newrelicVersion
 makeLibNewrelic :: Args -> ConfigFlags -> IO HookedBuildInfo
 makeLibNewrelic _ _ = do
   _ <- createDirectoryIfMissing False newrelicBuildDir
-  withCurrentDirectory newrelicBuildDir <| do
+  withCurrentDirectory newrelicBuildDir $ do
     let filename = "v" <> newrelicVersion <> ".tar.gz"
     _ <-
       readProcess
@@ -45,7 +45,7 @@ makeLibNewrelic _ _ = do
         ""
     _ <-
       withCurrentDirectory newrelicSdkDir
-        <| readProcess
+        $ readProcess
           "make"
           ["static", "CFLAGS='-Wno-missing-field-initializers'"]
           ""
@@ -68,7 +68,7 @@ updateExtraLibAndIncludeDirs localBuildInfo = do
           packageDescription
             { library =
                 Just
-                  <| lib
+                  $ lib
                     { libBuildInfo =
                         libBuild
                           { extraLibDirs = sdkDir : extraLibDirs libBuild,
@@ -81,8 +81,3 @@ updateExtraLibAndIncludeDirs localBuildInfo = do
 cleanLibNewrelic :: Args -> CleanFlags -> PackageDescription -> () -> IO ()
 cleanLibNewrelic _ _ _ _ =
   removeDirectoryRecursive newrelicBuildDir
-
-infixr 0 <|
-
-(<|) :: (a -> b) -> a -> b
-f <| x = f x
