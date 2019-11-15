@@ -1,0 +1,35 @@
+cabal-version: 1.24
+name:          tracing-newrelic
+version:       1.0.0.0
+synopsis:      Report to NewRelic using the New Relic C SDK
+homepage:      https://github.com/NoRedInk/tracing-newrelic
+author:        NoRedInk
+maintainer:    eng@noredink.com
+copyright:     2019 NoRedInk Corp.
+build-type:    Custom
+extra-source-files:
+    README.md
+
+custom-setup
+  setup-depends:
+      Cabal
+    , base
+    , directory
+    , process
+
+library
+  exposed-modules:
+      Tracing.NewRelic
+  hs-source-dirs:
+      src
+  default-extensions: DataKinds DeriveGeneric FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings ScopedTypeVariables Strict TypeOperators
+  extra-libraries:
+      pcre, pthread, newrelic
+  build-depends:
+      base
+    , text
+  if os(darwin)
+    ghc-options: -j4 -Werror -optl-Wl,-dead_strip_dylibs -optc-Wno-unused-command-line-argument -optl-Wno-unused-command-line-argument -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
+  else
+    ghc-options: -j4 -Werror -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
+  default-language: Haskell2010
