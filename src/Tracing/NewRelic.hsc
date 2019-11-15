@@ -11,7 +11,7 @@
 --
 -- The functions provided here match the ones provided by the
 -- [C SDK](https://newrelic.github.io/c-sdk/libnewrelic_8h.html).
--- Their docs have been copied over, but in doubt you can refer to
+-- Their docs have been copied over, but if in doubt you can refer to
 -- the original documentation.
 --
 -- = Example usage
