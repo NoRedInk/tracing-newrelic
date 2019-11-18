@@ -22,7 +22,7 @@ library
       Tracing.NewRelic
   hs-source-dirs:
       src
-  default-extensions: DataKinds DeriveGeneric FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings ScopedTypeVariables Strict TypeOperators
+  default-extensions: NamedFieldPuns NoImplicitPrelude OverloadedStrings Strict
   extra-libraries:
       pcre, pthread, newrelic
   build-depends:
