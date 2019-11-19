@@ -24,7 +24,7 @@ library
       src
   default-extensions: NamedFieldPuns NoImplicitPrelude OverloadedStrings Strict
   extra-libraries:
-      pcre, pthread, newrelic
+      pcre, pthread
   build-depends:
       base
     , text
