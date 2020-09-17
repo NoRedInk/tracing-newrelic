@@ -27,6 +27,7 @@ library
       pcre, pthread, newrelic
   build-depends:
       base
+    , bytestring
     , text
   if os(darwin)
     ghc-options: -j4 -Werror -optl-Wl,-dead_strip_dylibs -optc-Wno-unused-command-line-argument -optl-Wno-unused-command-line-argument -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns

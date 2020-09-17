@@ -109,6 +109,8 @@ where
 import Data.Int (Int, Int16, Int32, Int64)
 import Data.Word (Word64)
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Encoding
+import qualified Data.ByteString as ByteString
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Concurrent (newForeignPtr)
@@ -1151,9 +1153,9 @@ createDistributedTracePayloadHelper ioPayload = do
   if cPayload == nullPtr
     then pure Nothing
     else do
-      payload <- peekCString cPayload
+      payload <- ByteString.packCString cPayload
       _ <- free cPayload
-      pure $ Just $ Text.pack payload
+      pure $ Just $ Encoding.decodeUtf8 payload
 
 -- |
 -- Accept a distributed trace payload.
@@ -1195,8 +1197,8 @@ acceptDistributedTracePayloadHttpSafe (Transaction transactionPtr) payload trans
 version :: IO Text
 version = do
   cVersion <- newrelic_version
-  string <- peekCString cVersion
-  pure $ Text.pack string
+  string <- ByteString.packCString cVersion
+  pure $ Encoding.decodeUtf8 string
 
 ----------------------
 -- Helper functions --
@@ -1208,7 +1210,7 @@ destroy ptr f =
 
 withTextCString :: Text -> (CString -> IO a) -> IO a
 withTextCString text =
-  withCString (Text.unpack text)
+  ByteString.useAsCString (Encoding.encodeUtf8 text)
 
 withMaybeTextCString :: Maybe Text -> (CString -> IO a) -> IO a
 withMaybeTextCString maybeText callback =
@@ -1226,13 +1228,13 @@ allocatePointerWith value callback =
 
 cStringToText :: CString -> IO Text
 cStringToText cString =
-  fmap (Text.pack) $ peekCString cString
+  fmap Encoding.decodeUtf8 $ ByteString.packCString cString
 
 cStringToMaybeText :: CString -> IO (Maybe Text)
 cStringToMaybeText cString =
   if cString == nullPtr
     then pure Nothing
-    else fmap (Just . Text.pack) $ peekCString cString
+    else fmap Just $ cStringToText cString
 
 peekTextOff :: Ptr a -> Int -> IO Text
 peekTextOff ptr offset = do
