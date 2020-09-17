@@ -1,6 +1,6 @@
 cabal-version: 1.24
 name:          tracing-newrelic
-version:       1.0.0.0
+version:       1.0.0.1
 synopsis:      Report to NewRelic using the New Relic C SDK
 homepage:      https://github.com/NoRedInk/tracing-newrelic
 author:        NoRedInk
