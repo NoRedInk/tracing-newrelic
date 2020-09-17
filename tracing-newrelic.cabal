@@ -1,6 +1,6 @@
 cabal-version: 1.24
 name:          tracing-newrelic
-version:       1.0.0.0
+version:       1.0.0.1
 synopsis:      Report to NewRelic using the New Relic C SDK
 homepage:      https://github.com/NoRedInk/tracing-newrelic
 author:        NoRedInk
@@ -27,6 +27,7 @@ library
       pcre, pthread, newrelic
   build-depends:
       base
+    , bytestring
     , text
   if os(darwin)
     ghc-options: -j4 -Werror -optl-Wl,-dead_strip_dylibs -optc-Wno-unused-command-line-argument -optl-Wno-unused-command-line-argument -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
