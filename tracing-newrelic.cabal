@@ -20,6 +20,8 @@ custom-setup
 library
   exposed-modules:
       Tracing.NewRelic
+  other-modules:
+      FreeAfter
   hs-source-dirs:
       src
   default-extensions: NamedFieldPuns NoImplicitPrelude OverloadedStrings Strict
@@ -33,4 +35,19 @@ library
     ghc-options: -j4 -Werror -optl-Wl,-dead_strip_dylibs -optc-Wno-unused-command-line-argument -optl-Wno-unused-command-line-argument -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
   else
     ghc-options: -j4 -Werror -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
+  default-language: Haskell2010
+
+test-suite tests
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests
+      src
+  other-modules:
+      FreeAfter
+  ghc-options: -j4 -Werror -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
+  build-depends:
+      base
+    , tasty
+    , tasty-hunit
   default-language: Haskell2010
