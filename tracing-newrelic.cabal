@@ -20,6 +20,8 @@ custom-setup
 library
   exposed-modules:
       Tracing.NewRelic
+  other-modules:
+      FreeAfter
   hs-source-dirs:
       src
   default-extensions: NamedFieldPuns NoImplicitPrelude OverloadedStrings Strict

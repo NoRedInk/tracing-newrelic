@@ -2,7 +2,6 @@
 {-# LANGUAGE NoStrict #-}
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveFunctor #-}
 -- Our default `Strict` policy will cause runtime errors for this module. See:
 -- https://gitlab.haskell.org/ghc/ghc/issues/16810
 
@@ -107,7 +106,7 @@ module Tracing.NewRelic
     )
 where
 
-import Control.Monad.IO.Class (MonadIO(liftIO))
+import Control.Monad.IO.Class (liftIO)
 import Data.Int (Int, Int16, Int32, Int64)
 import Data.Word (Word64)
 import qualified Data.Text as Text
@@ -116,6 +115,7 @@ import qualified Data.ByteString as ByteString
 import Foreign.C.String
 import Foreign.C.Types
 import Foreign.Concurrent (newForeignPtr)
+import FreeAfter (FreeAfter(..), freeAfter)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
 import Foreign.Marshal.Alloc (alloca, free)
 import Foreign.Ptr
@@ -1270,26 +1270,3 @@ pokeMaybeTextOff ptr offset maybeText =
 boolToCInt :: Bool -> CInt
 boolToCInt value =
   CInt (if value then 1 else 0)
-
--- | A type for performing operations and freeing memory that was used during
--- them once these operations are done.
-newtype FreeAfter b a = FreeAfter { runFreeAfter :: (a -> IO b) -> IO b } deriving (Functor)
-
-freeAfter :: FreeAfter a a -> IO a
-freeAfter task = runFreeAfter task pure
-
-instance Applicative (FreeAfter b) where
-  pure x = FreeAfter $ \run -> run x
-  FreeAfter f <*> FreeAfter x =
-    FreeAfter $ \run -> f (\f' -> x (\x' -> run (f' x') ))
-
-instance Monad (FreeAfter b) where
-  FreeAfter x >>= f = FreeAfter $ \run ->
-    x (\x' ->
-        let
-          (FreeAfter y) = f x'
-        in y run
-      )
-
-instance MonadIO (FreeAfter b) where
-  liftIO io = FreeAfter $ \f -> io >>= f
