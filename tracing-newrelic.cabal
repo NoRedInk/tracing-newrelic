@@ -36,3 +36,18 @@ library
   else
     ghc-options: -j4 -Werror -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
   default-language: Haskell2010
+
+test-suite tests
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  hs-source-dirs:
+      tests
+      src
+  other-modules:
+      FreeAfter
+  ghc-options: -j4 -Werror -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wpartial-fields -Wredundant-constraints -Wincomplete-uni-patterns
+  build-depends:
+      base
+    , tasty
+    , tasty-hunit
+  default-language: Haskell2010
