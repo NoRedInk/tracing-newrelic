@@ -117,7 +117,7 @@ import Foreign.C.Types
 import Foreign.Concurrent (newForeignPtr)
 import FreeAfter (FreeAfter(..), freeAfter)
 import Foreign.ForeignPtr (ForeignPtr, withForeignPtr)
-import Foreign.Marshal.Alloc (alloca, free)
+import Foreign.Marshal.Alloc (alloca, allocaBytesAligned, free)
 import Foreign.Ptr
 import Foreign.Storable
 import Prelude hiding (init)
@@ -326,22 +326,16 @@ data ExternalSegment
         }
   deriving (Show)
 
-instance Storable ExternalSegment where
-
-  alignment _ = (#alignment newrelic_external_segment_params_t)
-
-  sizeOf _ = (#size newrelic_external_segment_params_t)
-
-  peek ptr = do
-    ExternalSegment
-      <$> (peekTextOff ptr (#offset newrelic_external_segment_params_t, uri))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_external_segment_params_t, procedure))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_external_segment_params_t, library))
-
-  poke ptr (ExternalSegment uri procedure library) = freeAfter $ do
+withExternalSegment :: ExternalSegment -> FreeAfter b (Ptr ExternalSegment)
+withExternalSegment (ExternalSegment uri procedure library) = do
+    ptr <-
+      FreeAfter $ allocaBytesAligned
+        (#size newrelic_external_segment_params_t)
+        (#alignment newrelic_external_segment_params_t)
     pokeTextOff ptr (#offset newrelic_external_segment_params_t, uri) uri
     pokeMaybeTextOff ptr (#offset newrelic_external_segment_params_t, procedure) procedure
     pokeMaybeTextOff ptr (#offset newrelic_external_segment_params_t, library) library
+    pure ptr
 
 -- |
 -- The `datastoreSegmentProduct` field of the `DatastoreSegment` specifies the
@@ -439,53 +433,25 @@ data DatastoreSegment
         }
   deriving (Show)
 
-instance Storable DatastoreSegment where
-
-  alignment _ = (#alignment newrelic_datastore_segment_params_t)
-
-  sizeOf _ = (#size newrelic_datastore_segment_params_t)
-
-  peek ptr = do
-    DatastoreSegment
-      <$> (peekDatastoreSegmentProductOff ptr (#offset newrelic_datastore_segment_params_t, product))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, collection))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, operation))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, host))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, port_path_or_id))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, database_name))
-      <*> (peekMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, query))
-    where
-      peekDatastoreSegmentProductOff :: Ptr a -> Int -> IO DatastoreSegmentProduct
-      peekDatastoreSegmentProductOff ptr' offset = do
-        maybeText <- peekMaybeTextOff ptr' offset
-        pure $ case maybeText of
-          Nothing -> OtherDatastoreSegmentProduct (#const_str NEWRELIC_DATASTORE_OTHER)
-          Just (#const_str NEWRELIC_DATASTORE_FIREBIRD) -> Firebird
-          Just (#const_str NEWRELIC_DATASTORE_INFORMIX) -> Informix
-          Just (#const_str NEWRELIC_DATASTORE_MSSQL) -> MSSQL
-          Just (#const_str NEWRELIC_DATASTORE_MYSQL) -> MySQL
-          Just (#const_str NEWRELIC_DATASTORE_ORACLE) -> Oracle
-          Just (#const_str NEWRELIC_DATASTORE_POSTGRES) -> Postgres
-          Just (#const_str NEWRELIC_DATASTORE_SQLITE) -> SQLite
-          Just (#const_str NEWRELIC_DATASTORE_SYBASE) -> Sybase
-          Just (#const_str NEWRELIC_DATASTORE_MEMCACHE) -> Memcached
-          Just (#const_str NEWRELIC_DATASTORE_MONGODB) -> MongoDB
-          Just (#const_str NEWRELIC_DATASTORE_ODBC) -> ODBC
-          Just (#const_str NEWRELIC_DATASTORE_REDIS) -> Redis
-          Just text -> OtherDatastoreSegmentProduct text
-
-  poke ptr (DatastoreSegment product' collection operation host portPathOrId databaseName query) = freeAfter $ do
-    pokeDatastoreSegmentProductOff ptr (#offset newrelic_datastore_segment_params_t, product) product'
-    pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, collection) collection
-    pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, operation) operation
-    pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, host) host
-    pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, port_path_or_id) portPathOrId
-    pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, database_name) databaseName
-    pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, query) query
-    where
-      pokeDatastoreSegmentProductOff :: Ptr a -> Int -> DatastoreSegmentProduct -> FreeAfter () ()
+withDatastoreSegment :: DatastoreSegment -> FreeAfter b (Ptr DatastoreSegment)
+withDatastoreSegment (DatastoreSegment product' collection operation host portPathOrId databaseName query) =
+    let
+      pokeDatastoreSegmentProductOff :: Ptr a -> Int -> DatastoreSegmentProduct -> FreeAfter b ()
       pokeDatastoreSegmentProductOff ptr' offset datastoreSegmentProduct =
         pokeTextOff ptr' offset $ Text.pack (show datastoreSegmentProduct)
+    in do
+      ptr <-
+        FreeAfter $ allocaBytesAligned
+          (#size newrelic_datastore_segment_params_t)
+          (#alignment newrelic_datastore_segment_params_t)
+      pokeDatastoreSegmentProductOff ptr (#offset newrelic_datastore_segment_params_t, product) product'
+      pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, collection) collection
+      pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, operation) operation
+      pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, host) host
+      pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, port_path_or_id) portPathOrId
+      pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, database_name) databaseName
+      pokeMaybeTextOff ptr (#offset newrelic_datastore_segment_params_t, query) query
+      pure ptr
 
 
 -- |
@@ -832,7 +798,7 @@ startExternalSegment :: Transaction
                         -- `Nothing` is returned, and a log message will be written
                         -- to the SDK log at LOG_ERROR level.
 startExternalSegment transaction@(Transaction transactionPtr) externalSegment = freeAfter $ do
-    externalSegmentPtr <- allocatePointerWith externalSegment
+    externalSegmentPtr <- withExternalSegment externalSegment
     segmentPtr <- liftIO $ newrelic_start_external_segment transactionPtr externalSegmentPtr
     liftIO $ startSegmentHelper transaction segmentPtr
 
@@ -853,7 +819,7 @@ startDatastoreSegment :: Transaction
                         -- `Nothing` is returned, and a log message will be written
                         -- to the SDK log at LOG_ERROR level.
 startDatastoreSegment transaction@(Transaction transactionPtr) datastoreSegment = freeAfter $ do
-  datastoreSegmentPtr <- allocatePointerWith datastoreSegment
+  datastoreSegmentPtr <- withDatastoreSegment datastoreSegment
   segmentPtr <- liftIO $ newrelic_start_datastore_segment transactionPtr datastoreSegmentPtr
   liftIO $ startSegmentHelper transaction segmentPtr
 
@@ -1236,32 +1202,12 @@ allocatePointerWith value = do
   liftIO $ poke ptr value
   pure ptr
 
-cStringToText :: CString -> IO Text
-cStringToText cString =
-  fmap Encoding.decodeUtf8 $ ByteString.packCString cString
-
-cStringToMaybeText :: CString -> IO (Maybe Text)
-cStringToMaybeText cString =
-  if cString == nullPtr
-    then pure Nothing
-    else fmap Just $ cStringToText cString
-
-peekTextOff :: Ptr a -> Int -> IO Text
-peekTextOff ptr offset = do
-  value <- peekByteOff ptr offset
-  cStringToText value
-
-peekMaybeTextOff :: Ptr a -> Int -> IO (Maybe Text)
-peekMaybeTextOff ptr offset = do
-  value <- peekByteOff ptr offset
-  cStringToMaybeText value
-
-pokeTextOff :: Ptr a -> Int -> Text -> FreeAfter () ()
+pokeTextOff :: Ptr a -> Int -> Text -> FreeAfter b ()
 pokeTextOff ptr offset text = do
   cstring <- withTextCString text
   liftIO $ pokeByteOff ptr offset cstring
 
-pokeMaybeTextOff :: Ptr a -> Int -> Maybe Text -> FreeAfter () ()
+pokeMaybeTextOff :: Ptr a -> Int -> Maybe Text -> FreeAfter b ()
 pokeMaybeTextOff ptr offset maybeText =
   case maybeText of
     Nothing -> liftIO $ pokeByteOff ptr offset nullPtr
