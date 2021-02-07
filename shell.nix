@@ -1,3 +1,4 @@
-{ pkgs ? import <nixpkgs> { } }:
-
-pkgs.mkShell { buildInputs = [ pkgs.cabal-install pkgs.ghc pkgs.pcre ]; }
+let pkgs = import nix/packages.nix;
+in pkgs.mkShell {
+  buildInputs = [ pkgs.cabal-install pkgs.ghc pkgs.pcre pkgs.niv ];
+}

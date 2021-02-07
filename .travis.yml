@@ -1,5 +1,5 @@
 language: haskell
 ghc:
-  - "8.4.4"
-  - "8.6.4"
-  - "8.6.5"
+  - "8.6.5" # nix 20.03 default
+  - "8.8.4" # nix 20.09 default
+  - "8.10.3" # nix 21.05 default (probably)

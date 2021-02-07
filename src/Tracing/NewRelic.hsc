@@ -107,7 +107,7 @@ module Tracing.NewRelic
 where
 
 import Control.Monad.IO.Class (liftIO)
-import Data.Int (Int, Int16, Int32, Int64)
+import Data.Int (Int16, Int32, Int64)
 import Data.Word (Word64)
 import qualified Data.Text as Text
 import qualified Data.Text.Encoding as Encoding
