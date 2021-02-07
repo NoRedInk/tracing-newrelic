@@ -30,3 +30,16 @@ main = do
   _ <- endSegment segment
   _ <- endTransaction tx
 ```
+
+## Building and testing
+This project uses vanilla cabal
+
+run
+```
+cabal update
+cabal configure --enable-tests
+cabal build
+cabal test
+```
+
+to build and test the project
